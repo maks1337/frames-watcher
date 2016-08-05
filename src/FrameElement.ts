@@ -1,11 +1,10 @@
 class FrameElement {
 
-    private id: string;
-    private code: string;
-    private element: HTMLElement;
-    private rects: Object;
+    id: string;
+    code: string;
+    rects: Object;
+    element: HTMLElement;
     private _viewed: boolean = false;
-    private time: number = 0;
 
     constructor(id: string, code: string,element: HTMLElement){
         this.element = element;
@@ -17,14 +16,14 @@ class FrameElement {
     get viewed():boolean {
         return this._viewed;
     }
-
+    
     set viewed(viewed:boolean){
         this._viewed = viewed;
     }
 
     getRects(){
-        if(this.element.hasOwnProperty('getClientRects')){
-            this.rects = this.element.getClientRects();
+        if('getClientRects' in this.element){
+            this.rects = this.element.getClientRects()[0];
         }else{
            throw new ReferenceError('FrameElement can\'t get element rects');
         }
