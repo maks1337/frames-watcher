@@ -1,20 +1,20 @@
 class FrameContext {
 
-    private url: string;
-    private domain: string;
+    url: string;
+    domain: string;
     private frames: Object;
-    private width: number = 0;
-    private height: number = 0;
-    private iframe: boolean = false;
+    protected width: number = 0;
+    protected height: number = 0;
+    protected iframe: boolean = false;
 
-    construct(){
+    constructor(width:number=0,height:number=0) {
 
-        this.setSize(0,0);
+        this.setSize(width,height);
         this.setMetadata();
 
     }
 
-    setMetadata(){
+    setMetadata():void {
 
         this.iframe = ((window.location != window.parent.location) ? true : false);
         this.url = window.location.href;
@@ -22,7 +22,7 @@ class FrameContext {
 
     }
 
-    setSize(width: number, height: number){
+    setSize(width: number, height: number):void {
 
         if(width > 0 && height > 0){
 

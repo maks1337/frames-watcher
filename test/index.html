@@ -11,7 +11,12 @@
   <script src="../node_modules/mocha/mocha.js"></script>
   <script src="../dist/frames.js"></script>
   <script>mocha.setup('bdd')</script>
+  <script>
+      var expect = chai.expect;
+      var should = chai.should();
+  </script>
   <script src="FrameElement.js"></script>
+  <script src="FrameContext.js"></script>
   <div id="mocha"></div>
   <script>
     mocha.run();
