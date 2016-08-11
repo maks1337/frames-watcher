@@ -20,7 +20,7 @@ class FrameElement {
 
     }
 
-    getHookParent(hook: HTMLElement){
+    getHookParent(hook: HTMLElement):HTMLElement{
 
         return hook.parentElement;
 
@@ -34,7 +34,7 @@ class FrameElement {
         this._viewed = viewed;
     }
 
-    getRects(){
+    getRects():void{
 
         if(!(this.element instanceof Object)){
             throw new Error('FrameElement element in not a proper object');
