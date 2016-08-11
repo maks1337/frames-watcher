@@ -6,11 +6,24 @@ class FrameElement {
     element: HTMLElement;
     private _viewed: boolean = false;
 
-    constructor(id: string, code: string,element: HTMLElement){
-        this.element = element;
-        this.getRects();
-        this.id = id;
+    constructor(hookid: string, code: string){
+
+        const hook = document.getElementById(hookid);
+ 
+        if(!(hook instanceof Object)){
+            throw new Error('Invalid hook id');
+        }
+
+        this.element = this.getHookParent(hook);
+        this.id = this.element.id;
         this.code = code;
+
+    }
+
+    getHookParent(hook: HTMLElement){
+
+        return hook.parentElement;
+
     }
 
     get viewed():boolean {
@@ -22,10 +35,15 @@ class FrameElement {
     }
 
     getRects(){
+
+        if(!(this.element instanceof Object)){
+            throw new Error('FrameElement element in not a proper object');
+        }
+
         if('getClientRects' in this.element){
             this.rects = this.element.getClientRects()[0];
         }else{
-           throw new ReferenceError('FrameElement can\'t get element rects');
+           throw new Error('FrameElement can\'t get element rects');
         }
     }
 
