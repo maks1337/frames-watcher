@@ -7,6 +7,8 @@
     "test": "test"
   },
   "scripts": {
+    "prebuild": "find ./src -name *.ts -type f > ts-files.txt",
+    "build": "npm prebuild & /usr/local/bin/tsc ./src/Namespace.ts --outFile ./dist/frames.js --removeComments -t es5",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

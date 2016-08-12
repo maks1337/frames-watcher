@@ -1,4 +1,4 @@
-describe('FrameElement',()=>{
+describe('Element',()=>{
 
     const testHookId = 'hook-1';
     const testCodeId = 'code-test';
@@ -22,7 +22,7 @@ describe('FrameElement',()=>{
 
     it('should store passed metadata about element',()=>{
 
-        let fe = new FrameElement(testHookId,testCodeId);
+        let fe = new FrameWatcher.Element(testHookId,testCodeId);
 
         expect(fe.id).to.equal(testPlacementId);
         expect(fe.code).to.equal(testCodeId);
@@ -31,18 +31,16 @@ describe('FrameElement',()=>{
 
     it('should be able to find hook\'s parent and store frame element',()=>{
 
-        let fe = new FrameElement(testHookId,testCodeId);
+        let fe = new FrameWatcher.Element(testHookId,testCodeId);
         expect(fe.element).to.be.object;
         expect(fe.element).to.have.property('id');
         expect(fe.element.id).to.be.equal(testPlacementId);
-
-
 
     });
 
     it('should store proper rects data',()=>{
 
-        let fe = new FrameElement(testHookId,testCodeId);
+        let fe = new FrameWatcher.Element(testHookId,testCodeId);
         fe.getRects();
 
         expect(() => fe.getRects.bind(fe)).to.not.throw(Error);

@@ -1,4 +1,0 @@
-./src/FrameContext.ts
-./src/FrameElement.ts
-./src/FrameRegister.ts
-./src/FrameRunner.ts
