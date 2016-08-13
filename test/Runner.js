@@ -15,6 +15,7 @@ describe('Runner', ()=>{
     it('should register and store elements',()=>{
         
         const runner = new FrameWatcher.Runner();
+        runner.debug = 1;
         runner.registerElement(testHookId,testCodeId);
 
         expect(runner.elements).to.be.a('array');

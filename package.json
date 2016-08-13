@@ -8,6 +8,7 @@
   },
   "scripts": {
     "prebuild": "find ./src -name *.ts -type f > ts-files.txt",
+    "postbuild": "uglifyjs ./dist/frames.js -o ./dist/frames.min.js --stats -c -m",
     "build": "npm prebuild & /usr/local/bin/tsc ./src/Namespace.ts --outFile ./dist/frames.js --removeComments -t es5",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

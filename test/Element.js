@@ -1,20 +1,17 @@
 describe('Element',()=>{
 
-    const testHookId = 'hook-1';
-    const testCodeId = 'code-test';
-    const testPlacementId = 'placement-1';
-
     const TestElement = document.createElement('div');
     const TestHook = document.createElement('div');
 
-    const TestWidth = 300;
-    const TestHeight = 100;
+    const TestWidth = 500;
+    const TestHeight = 300;
 
     TestElement.setAttribute('id',testPlacementId);
     TestHook.setAttribute('id',testHookId);
 
     TestElement.style.width = TestWidth +'px';
     TestElement.style.height = TestHeight + 'px';
+    TestElement.style.background = 'red';
 
     document.getElementById('test-box').appendChild(TestElement);
     

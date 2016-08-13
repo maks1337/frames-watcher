@@ -6,9 +6,10 @@ namespace FrameWatcher {
 
         id: string;
         code: string;
-        rects: Object;
         element: HTMLElement;
+        rects: Object;
         private _viewed: boolean = false;
+        private _timeVisible: number = 0;
 
         constructor(hookid: string, code: string){
 
@@ -37,6 +38,14 @@ namespace FrameWatcher {
         set viewed(viewed:boolean){
             this._viewed = viewed;
         }
+
+        get timevisible():number {
+            return this._timeVisible;
+        }
+        
+        set timevisible(timevisible:number){
+            this._timeVisible = timevisible;
+        }
         
         getSize():Object {
 
@@ -44,7 +53,7 @@ namespace FrameWatcher {
 
         }
 
-        getRects():void{
+        getRects():Object{
 
             if(!(this.element instanceof Object)){
                 throw new Error('FrameElement element in not a proper object');
@@ -52,9 +61,11 @@ namespace FrameWatcher {
 
             if('getClientRects' in this.element){
                 this.rects = this.element.getClientRects()[0];
+                return this.rects;
             }else{
-            throw new Error('FrameElement can\'t get element rects');
+                throw new Error('FrameElement can\'t get element rects');
             }
+
         }
 
     }

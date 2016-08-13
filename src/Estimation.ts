@@ -28,7 +28,7 @@ namespace FrameWatcher {
 
         }
 
-        runCalculation(){
+        runCalculation():number{
 
             return this.calculate(
                 this.element.getSize(),
@@ -38,54 +38,41 @@ namespace FrameWatcher {
 
         }
 
-        calculate(elementSize: Size,rects:Rects,contextSize: Size){
+        calculate(elementSize: Size,rects:Rects,contextSize: Size):number{
 
-            let newHeight = elementSize.height;
-            let newWidth = elementSize.width;
-            let orginalSize = elementSize.height * elementSize.width;
+            let percent: number = 0;
+            let newHeight: number = elementSize.height;
+            let newWidth: number = elementSize.width;
+            let orginalSize: number = elementSize.height * elementSize.width;
 
-            if (rects[0].top < 0) {
-                newHeight = elementSize.height + rects[0].top;
-                if (newHeight < 0) {
-                    newHeight = 0;
-                }
-                if (newHeight > elementSize.height) {
-                    newHeight = elementSize.height;
-                }
+            if (rects.top < 0) {
+                newHeight = elementSize.height + rects.top;
+                if (newHeight < 0) newHeight = 0;
+                if (newHeight > elementSize.height) newHeight = elementSize.height;
             }
-            if (contextSize.width < rects[0].right) {
-                newWidth = contextSize.width - rects[0].left;
-                if (newWidth < 0) {
-                    newWidth = 0;
-                }
-                if (newWidth > elementSize.width) {
-                    newWidth = elementSize.width;
-                }
+            if (contextSize.width < rects.right) {
+                newWidth = contextSize.width - rects.left;
+                if (newWidth < 0) newWidth = 0;
+                if (newWidth > elementSize.width) newWidth = elementSize.width;
             }
-            if (rects[0].bottom > contextSize.height) {
-                newHeight = elementSize.height - (rects[0].bottom - contextSize.height);
-                if (newHeight < 0) {
-                    newHeight = 0;
-                }
-                if (newHeight > elementSize.height) {
-                    newHeight = elementSize.height;
-                }
+            if (rects.bottom > contextSize.height) {
+                newHeight = elementSize.height - (rects.bottom - contextSize.height);
+                if (newHeight < 0) newHeight = 0;
+                if (newHeight > elementSize.height) newHeight = elementSize.height;
             }
-            if (rects[0].left < 0) {
-                newWidth = elementSize.width + rects[0].left;
-                if (newWidth < 0) {
-                    newWidth = 0;
-                }
-                if (newWidth > elementSize.width) {
-                    newWidth = elementSize.width;
-                }
+            if (rects.left < 0) {
+                newWidth = elementSize.width + rects.left;
+                if (newWidth < 0) newWidth = 0; 
+                if (newWidth > elementSize.width) newWidth = elementSize.width;
             }
-            let newSize = newWidth * newHeight;
-            var percent = Math.round((newSize / orginalSize) * Math.pow(10, 2)) / Math.pow(10, 2);
+            
+            let newSize: number = newWidth * newHeight;
+            
+            if ((rects.bottom > 0 || rects.top > 0) && (rects.top < contextSize.height) && (rects.left < contextSize.width)) {
+                percent = Math.round((newSize / orginalSize) * Math.pow(10, 2)) / Math.pow(10, 2);
+            }
 
-            if ((rects[0].bottom > 0 || rects[0].top > 0) && (rects[0].top < contextSize.height) && (rects[0].left < contextSize.width)) {
-                return percent;
-            }
+            return percent;
 
         }
     }
