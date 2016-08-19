@@ -12,7 +12,18 @@ describe('Runner', ()=>{
 
     });
 
-    it('should register and store elements',()=>{
+    it('should register and store element',()=>{
+        
+        const runner = new FrameWatcher.Runner();
+        runner.debug = true;
+        runner.registerElement(testHookId,testCodeId);
+
+        expect(runner.elements).to.be.a('array');
+        expect(runner.elements).to.be.not.empty;
+
+    });
+
+    it('should register and store many elements',()=>{
         
         const runner = new FrameWatcher.Runner();
         runner.debug = 1;

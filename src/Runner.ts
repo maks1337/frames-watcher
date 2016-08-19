@@ -1,6 +1,7 @@
 /// <reference path="Context.ts" />
 /// <reference path="Element.ts" />
 /// <reference path="Estimation.ts" />
+/// <reference path="Strategies.ts" />
 
 namespace FrameWatcher {
 
@@ -8,15 +9,26 @@ namespace FrameWatcher {
         
         private context: Context;
         private _elements: Array<Element> = [];
-        private _debug: boolean;
+        private _debug: boolean = false;
         private _intervalTickRate: number = 1000;
         private _interval: any;
-        private _timeLimit: number = (1000*60)*60;
+        private _timeLimit: number = (1000*60)*10;
         private _timeElapsed: number = this._intervalTickRate;
+        private _strategies: Array<StrategyCheck> = [];
 
         constructor(){
+
             this.context = new Context();
             this.bindRuntime();
+
+            const basic = new StrategyCheck(new BasicStrategy()); 
+            const full = new StrategyCheck(new FullStrategy()); 
+            const long = new StrategyCheck(new LongStrategy()); 
+
+            this._strategies[basic.name] = basic;
+            this._strategies[full.name] = full;
+            this._strategies[long.name] = long;
+
         }
 
         set debug(debug:boolean){
@@ -50,8 +62,8 @@ namespace FrameWatcher {
         }
 
         checkElements():void {
-            
-            if(this.debug){
+
+            if(this._debug === true){
                 console.log(`------ second: ${this._timeElapsed/1000}`);
             }
 
@@ -60,13 +72,18 @@ namespace FrameWatcher {
                 const estimation = new Estimation(element,this.context);
                 const percent = estimation.runCalculation();
 
-                if(percent > 0.5){
-                    element.viewed = true;
-                    element.timevisible += this._intervalTickRate;
+                element.addToTimeline(percent);
+
+        
+                for(let name in this._strategies){
+
+                    const strategy = this._strategies[name];
+                    element.viewed[strategy.name] = strategy.run(element.getTimeline());
+
                 }
 
-                if(this.debug){
-                    console.log(element.id,element.code,percent,element.viewed,element.timevisible);
+                if(this._debug === true){
+                    console.log(element.id,element.code,percent,element.viewed);
                 }
 
             }
