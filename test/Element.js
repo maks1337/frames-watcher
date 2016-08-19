@@ -51,4 +51,26 @@ describe('Element',()=>{
 
     });
 
+
+    it('shoud store visibilty timeline',()=>{
+
+        let fe = new FrameWatcher.Element(testHookId,testCodeId);
+    
+        fe.addToTimeline(0.5);
+        fe.addToTimeline(0.5);
+        fe.addToTimeline(1);
+        fe.addToTimeline(1);
+        fe.addToTimeline(0);
+
+        expect(fe.getTimeline()).to.be.a('array');
+        expect(fe.getTimeline()).to.have.lengthOf(4);
+
+        let visibilitySum = 0;
+
+        fe.getTimeline().map(x => visibilitySum += x);
+
+        expect(visibilitySum).to.equal(3);
+
+    });
+
 });

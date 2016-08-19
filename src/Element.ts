@@ -8,8 +8,8 @@ namespace FrameWatcher {
         code: string;
         element: HTMLElement;
         rects: Object;
-        private _viewed: boolean = false;
-        private _timeVisible: number = 0;
+        viewed: Object = {};
+        private _timeline: Array<number> = [];
 
         constructor(hookid: string, code: string){
 
@@ -31,20 +31,14 @@ namespace FrameWatcher {
 
         }
 
-        get viewed():boolean {
-            return this._viewed;
+        getTimeline():Array<number>{
+            return this._timeline;
         }
         
-        set viewed(viewed:boolean){
-            this._viewed = viewed;
-        }
-
-        get timevisible():number {
-            return this._timeVisible;
-        }
-        
-        set timevisible(timevisible:number){
-            this._timeVisible = timevisible;
+        addToTimeline(visibility:number){
+            if(visibility > 0){
+                this._timeline.push(visibility);
+            }
         }
         
         getSize():Object {
