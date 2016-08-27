@@ -2,6 +2,7 @@
 /// <reference path="Element.ts" />
 /// <reference path="Estimation.ts" />
 /// <reference path="Strategies.ts" />
+/// <reference path="Sender.ts" />
 
 namespace FrameWatcher {
 
@@ -12,15 +13,19 @@ namespace FrameWatcher {
         private _debug: boolean = false;
         private _intervalTickRate: number = 1000;
         private _interval: any;
-        private _timeLimit: number = (1000*60)*10;
+        private _timeLimit: number = (1000 * 60) * 10;
         private _timeElapsed: number = this._intervalTickRate;
         private _strategies: Array<StrategyCheck> = [];
+        private _sender: any;
 
-        constructor(){
+        constructor(
+            sender: string = 'http',
+            senderUrl: string,
+            cookie: string = undefined,
+            viewId: string = undefined){
 
             this.context = new Context();
-            this.bindRuntime();
-
+            
             const basic = new StrategyCheck(new BasicStrategy()); 
             const full = new StrategyCheck(new FullStrategy()); 
             const long = new StrategyCheck(new LongStrategy()); 
@@ -31,30 +36,70 @@ namespace FrameWatcher {
             this._strategies[long.name] = long;
             this._strategies[time.name] = time;
 
+            try {
+
+                const select = new SenderSelect(sender,senderUrl);
+                this._sender = select.returnObject();
+                this._sender.cookie = cookie;
+                this._sender.viewId = viewId;
+                this.bindRuntime();
+
+            } catch (error) {
+
+                console.log(`Runner not started because: ${error}`);
+                
+            }
+
         }
 
-        set debug(debug:boolean){
+        set debug(debug: boolean){
             this._debug = debug;
         }
 
-        get debug():boolean {
+        get debug(): boolean {
             return this._debug;
         }
 
-        bindRuntime():void {
+        get sender(): Object {
+            return this._sender;
+        }
 
-            window.addEventListener('resize', ()=>{ this.context.setSize(0,0); });
-            this._interval = setInterval(()=>{ 
+        sendData(): void {
+            this._sender.loadElements(this._elements);
+            this._sender.send();
+        }
+
+        protected run(): void {
+
+            try {
+
                 this.checkElements(); 
                 this._timeElapsed += this._intervalTickRate; 
                 this.expireRuntime();
-            },this._intervalTickRate);
+                this.sendData();
+
+            } catch (error) {
+
+                console.log(`runtime stopped ${error}`);
+                this.expireRuntime(true);
+                          
+            }
 
         }
 
-        expireRuntime():boolean{
+        bindRuntime(): void {
 
-            if(this._timeElapsed >= this._timeLimit){
+            /** first "dry" run */
+
+            this.run();
+            window.addEventListener('resize', ()=>{ this.context.setSize(0,0); });
+            this._interval = setInterval(()=> this.run(),this._intervalTickRate);
+
+        }
+
+        expireRuntime(force: boolean = false): boolean {
+
+            if(this._timeElapsed >= this._timeLimit || force){
                 clearInterval(this._interval);
                 return true;
             }
@@ -63,7 +108,7 @@ namespace FrameWatcher {
 
         }
 
-        checkElements():void {
+        checkElements(): void {
 
             if(this._debug === true){
                 console.log(`------ second: ${this._timeElapsed/1000}`);
@@ -75,13 +120,17 @@ namespace FrameWatcher {
                 const percent = estimation.runCalculation();
 
                 element.addToTimeline(percent);
+                element.viewed = [];
 
-        
                 for(let name in this._strategies){
 
                     const strategy = this._strategies[name];
-                    element.viewed[strategy.name] = strategy.run(element.getTimeline());
 
+                    element.viewed.push([
+                        strategy.name,
+                        strategy.run(element.getTimeline())
+                    ]); 
+        
                 }
 
                 if(this._debug === true){
@@ -92,14 +141,14 @@ namespace FrameWatcher {
 
         }
 
-        registerElement(hookid:string,code:string):void {
+        registerElement(hookid:string,code:string): void {
 
             this._elements.push(new Element(hookid,code));
             this.checkElements();
         
         }
 
-        get elements():Array<Object> {
+        get elements(): Array<Object> {
             return this._elements;
         }
 

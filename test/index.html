@@ -12,19 +12,26 @@
   <script src="../dist/frames.js"></script>
   <script>mocha.setup('bdd')</script>
   <script>
-      var expect = chai.expect;
-      var should = chai.should();
+
+      const expect = chai.expect;
+      const should = chai.should;
+      const assert = chai.assert;
 
       const testHookId = 'hook-1';
       const testCodeId = 'code-test';
       const testPlacementId = 'placement-1';
 
+      const predefinedCookie = 'cookie-1';
+      const predefinedView = 'view-1';
+      const predefinedUrl = 'http://localhost';
+    
   </script>
   <script src="Element.js"></script>
   <script src="Context.js"></script>
   <script src="Runner.js"></script>
   <script src="Estimation.js"></script>
   <script src="Strategies.js"></script>
+  <script src="Sender.js"></script>
   <div id="mocha"></div>
   <script>
     mocha.run();
