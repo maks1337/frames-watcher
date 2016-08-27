@@ -47,22 +47,22 @@ namespace FrameWatcher {
 
             if (rects.top < 0) {
                 newHeight = elementSize.height + rects.top;
-                if (newHeight < 0) newHeight = 0;
+                newHeight = newHeight < 0 ? 0 : newHeight;
                 if (newHeight > elementSize.height) newHeight = elementSize.height;
             }
             if (contextSize.width < rects.right) {
                 newWidth = contextSize.width - rects.left;
-                if (newWidth < 0) newWidth = 0;
+                newWidth = newWidth < 0 ? 0 : newWidth;
                 if (newWidth > elementSize.width) newWidth = elementSize.width;
             }
             if (rects.bottom > contextSize.height) {
                 newHeight = elementSize.height - (rects.bottom - contextSize.height);
-                if (newHeight < 0) newHeight = 0;
+                newHeight = newHeight < 0 ? 0 : newHeight;
                 if (newHeight > elementSize.height) newHeight = elementSize.height;
             }
             if (rects.left < 0) {
                 newWidth = elementSize.width + rects.left;
-                if (newWidth < 0) newWidth = 0; 
+                newWidth = newWidth < 0 ? 0 : newWidth;
                 if (newWidth > elementSize.width) newWidth = elementSize.width;
             }
             

@@ -36,7 +36,8 @@ var FrameWatcher;
 (function (FrameWatcher) {
     var Element = (function () {
         function Element(hookid, code) {
-            this._viewed = false;
+            this.viewed = {};
+            this._timeline = [];
             var hook = document.getElementById(hookid);
             if (!(hook instanceof Object)) {
                 throw new Error('Invalid hook id');
@@ -48,16 +49,14 @@ var FrameWatcher;
         Element.prototype.getHookParent = function (hook) {
             return hook.parentElement;
         };
-        Object.defineProperty(Element.prototype, "viewed", {
-            get: function () {
-                return this._viewed;
-            },
-            set: function (viewed) {
-                this._viewed = viewed;
-            },
-            enumerable: true,
-            configurable: true
-        });
+        Element.prototype.getTimeline = function () {
+            return this._timeline;
+        };
+        Element.prototype.addToTimeline = function (visibility) {
+            if (visibility > 0) {
+                this._timeline.push(visibility);
+            }
+        };
         Element.prototype.getSize = function () {
             return { width: this.element.offsetWidth, height: this.element.offsetHeight };
         };
@@ -67,6 +66,7 @@ var FrameWatcher;
             }
             if ('getClientRects' in this.element) {
                 this.rects = this.element.getClientRects()[0];
+                return this.rects;
             }
             else {
                 throw new Error('FrameElement can\'t get element rects');
@@ -88,50 +88,43 @@ var FrameWatcher;
             return this.calculate(this.element.getSize(), this.element.getRects(), this.context.getSize());
         };
         Estimation.prototype.calculate = function (elementSize, rects, contextSize) {
+            var percent = 0;
             var newHeight = elementSize.height;
             var newWidth = elementSize.width;
             var orginalSize = elementSize.height * elementSize.width;
-            if (rects[0].top < 0) {
-                newHeight = elementSize.height + rects[0].top;
-                if (newHeight < 0) {
+            if (rects.top < 0) {
+                newHeight = elementSize.height + rects.top;
+                if (newHeight < 0)
                     newHeight = 0;
-                }
-                if (newHeight > elementSize.height) {
+                if (newHeight > elementSize.height)
                     newHeight = elementSize.height;
-                }
             }
-            if (contextSize.width < rects[0].right) {
-                newWidth = contextSize.width - rects[0].left;
-                if (newWidth < 0) {
+            if (contextSize.width < rects.right) {
+                newWidth = contextSize.width - rects.left;
+                if (newWidth < 0)
                     newWidth = 0;
-                }
-                if (newWidth > elementSize.width) {
+                if (newWidth > elementSize.width)
                     newWidth = elementSize.width;
-                }
             }
-            if (rects[0].bottom > contextSize.height) {
-                newHeight = elementSize.height - (rects[0].bottom - contextSize.height);
-                if (newHeight < 0) {
+            if (rects.bottom > contextSize.height) {
+                newHeight = elementSize.height - (rects.bottom - contextSize.height);
+                if (newHeight < 0)
                     newHeight = 0;
-                }
-                if (newHeight > elementSize.height) {
+                if (newHeight > elementSize.height)
                     newHeight = elementSize.height;
-                }
             }
-            if (rects[0].left < 0) {
-                newWidth = elementSize.width + rects[0].left;
-                if (newWidth < 0) {
+            if (rects.left < 0) {
+                newWidth = elementSize.width + rects.left;
+                if (newWidth < 0)
                     newWidth = 0;
-                }
-                if (newWidth > elementSize.width) {
+                if (newWidth > elementSize.width)
                     newWidth = elementSize.width;
-                }
             }
             var newSize = newWidth * newHeight;
-            var percent = Math.round((newSize / orginalSize) * Math.pow(10, 2)) / Math.pow(10, 2);
-            if ((rects[0].bottom > 0 || rects[0].top > 0) && (rects[0].top < contextSize.height) && (rects[0].left < contextSize.width)) {
-                return percent;
+            if ((rects.bottom > 0 || rects.top > 0) && (rects.top < contextSize.height) && (rects.left < contextSize.width)) {
+                percent = Math.round((newSize / orginalSize) * Math.pow(10, 2)) / Math.pow(10, 2);
             }
+            return percent;
         };
         return Estimation;
     }());
@@ -139,24 +132,118 @@ var FrameWatcher;
 })(FrameWatcher || (FrameWatcher = {}));
 var FrameWatcher;
 (function (FrameWatcher) {
+    var BasicStrategy = (function () {
+        function BasicStrategy() {
+            this.name = 'basic';
+        }
+        BasicStrategy.prototype.validate = function (timeline) {
+            return (timeline.sort()[timeline.length - 1] >= 0.5);
+        };
+        return BasicStrategy;
+    }());
+    FrameWatcher.BasicStrategy = BasicStrategy;
+    var FullStrategy = (function () {
+        function FullStrategy() {
+            this.name = 'full';
+        }
+        FullStrategy.prototype.validate = function (timeline) {
+            return (timeline.sort()[timeline.length - 1] == 1);
+        };
+        return FullStrategy;
+    }());
+    FrameWatcher.FullStrategy = FullStrategy;
+    var LongStrategy = (function () {
+        function LongStrategy() {
+            this.name = 'long';
+        }
+        LongStrategy.prototype.validate = function (timeline) {
+            var counts = timeline.reduce(function (acc, curr) {
+                acc[curr] ? acc[curr]++ : acc[curr] = 1;
+                return acc;
+            }, {});
+            return counts['1'] ? counts['1'] >= 5 : counts['1'] < 5;
+        };
+        return LongStrategy;
+    }());
+    FrameWatcher.LongStrategy = LongStrategy;
+    var StrategyCheck = (function () {
+        function StrategyCheck(strategy) {
+            this.strategy = strategy;
+            this.name = strategy.name;
+        }
+        StrategyCheck.prototype.run = function (timeline) {
+            return this.strategy.validate(timeline);
+        };
+        return StrategyCheck;
+    }());
+    FrameWatcher.StrategyCheck = StrategyCheck;
+})(FrameWatcher || (FrameWatcher = {}));
+var FrameWatcher;
+(function (FrameWatcher) {
     var Runner = (function () {
         function Runner() {
             this._elements = [];
+            this._debug = false;
+            this._intervalTickRate = 1000;
+            this._timeLimit = (1000 * 60) * 10;
+            this._timeElapsed = this._intervalTickRate;
+            this._strategies = [];
             this.context = new FrameWatcher.Context();
-            this.bindScrollEvents();
+            this.bindRuntime();
+            var basic = new FrameWatcher.StrategyCheck(new FrameWatcher.BasicStrategy());
+            var full = new FrameWatcher.StrategyCheck(new FrameWatcher.FullStrategy());
+            var long = new FrameWatcher.StrategyCheck(new FrameWatcher.LongStrategy());
+            this._strategies[basic.name] = basic;
+            this._strategies[full.name] = full;
+            this._strategies[long.name] = long;
         }
-        Runner.prototype.bindScrollEvents = function () {
+        Object.defineProperty(Runner.prototype, "debug", {
+            get: function () {
+                return this._debug;
+            },
+            set: function (debug) {
+                this._debug = debug;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Runner.prototype.bindRuntime = function () {
             var _this = this;
-            window.addEventListener('resize', function () { _this.checkElements(); });
-            window.addEventListener('scroll', function () { _this.checkElements(); });
+            window.addEventListener('resize', function () { _this.context.setSize(0, 0); });
+            this._interval = setInterval(function () {
+                _this.checkElements();
+                _this._timeElapsed += _this._intervalTickRate;
+                _this.expireRuntime();
+            }, this._intervalTickRate);
+        };
+        Runner.prototype.expireRuntime = function () {
+            if (this._timeElapsed >= this._timeLimit) {
+                clearInterval(this._interval);
+                return true;
+            }
+            return false;
         };
         Runner.prototype.checkElements = function () {
+            if (this._debug === true) {
+                console.log("------ second: " + this._timeElapsed / 1000);
+            }
             for (var _i = 0, _a = this._elements; _i < _a.length; _i++) {
                 var element = _a[_i];
+                var estimation = new FrameWatcher.Estimation(element, this.context);
+                var percent = estimation.runCalculation();
+                element.addToTimeline(percent);
+                for (var name_1 in this._strategies) {
+                    var strategy = this._strategies[name_1];
+                    element.viewed[strategy.name] = strategy.run(element.getTimeline());
+                }
+                if (this._debug === true) {
+                    console.log(element.id, element.code, percent, element.viewed);
+                }
             }
         };
         Runner.prototype.registerElement = function (hookid, code) {
             this._elements.push(new FrameWatcher.Element(hookid, code));
+            this.checkElements();
         };
         Object.defineProperty(Runner.prototype, "elements", {
             get: function () {
