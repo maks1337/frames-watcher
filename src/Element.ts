@@ -2,13 +2,15 @@
 
 namespace FrameWatcher {
 
+    type viewedData = [string,boolean];
+
     export class Element {
 
         id: string;
         code: string;
         element: HTMLElement;
         rects: Object;
-        viewed: Object = {};
+        viewed: Array<viewedData> = [];
         private _timeline: Array<number> = [];
 
         constructor(hookid: string, code: string){
