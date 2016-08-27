@@ -24,10 +24,12 @@ namespace FrameWatcher {
             const basic = new StrategyCheck(new BasicStrategy()); 
             const full = new StrategyCheck(new FullStrategy()); 
             const long = new StrategyCheck(new LongStrategy()); 
+            const time = new StrategyCheck(new TimeStrategy()); 
 
             this._strategies[basic.name] = basic;
             this._strategies[full.name] = full;
             this._strategies[long.name] = long;
+            this._strategies[time.name] = time;
 
         }
 
