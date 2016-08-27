@@ -41,35 +41,37 @@ namespace FrameWatcher {
         calculate(elementSize: Size,rects:Rects,contextSize: Size):number{
 
             let percent: number = 0;
-            let newHeight: number = elementSize.height;
-            let newWidth: number = elementSize.width;
-            let orginalSize: number = elementSize.height * elementSize.width;
+            let height: number = elementSize.height;
+            let width: number = elementSize.width;
+            let size: number = elementSize.height * elementSize.width;
 
             if (rects.top < 0) {
-                newHeight = elementSize.height + rects.top;
-                newHeight = newHeight < 0 ? 0 : newHeight;
-                if (newHeight > elementSize.height) newHeight = elementSize.height;
+                height = elementSize.height + rects.top;
+                height = height < 0 ? 0 : height;
+                if (height > elementSize.height) height = elementSize.height;
             }
             if (contextSize.width < rects.right) {
-                newWidth = contextSize.width - rects.left;
-                newWidth = newWidth < 0 ? 0 : newWidth;
-                if (newWidth > elementSize.width) newWidth = elementSize.width;
+                width = contextSize.width - rects.left;
+                width = width < 0 ? 0 : width;
+                if (width > elementSize.width) width = elementSize.width;
             }
             if (rects.bottom > contextSize.height) {
-                newHeight = elementSize.height - (rects.bottom - contextSize.height);
-                newHeight = newHeight < 0 ? 0 : newHeight;
-                if (newHeight > elementSize.height) newHeight = elementSize.height;
+                height = elementSize.height - (rects.bottom - contextSize.height);
+                height = height < 0 ? 0 : height;
+                if (height > elementSize.height) height = elementSize.height;
             }
             if (rects.left < 0) {
-                newWidth = elementSize.width + rects.left;
-                newWidth = newWidth < 0 ? 0 : newWidth;
-                if (newWidth > elementSize.width) newWidth = elementSize.width;
+                width = elementSize.width + rects.left;
+                width = width < 0 ? 0 : width;
+                if (width > elementSize.width) width = elementSize.width;
             }
-            
-            let newSize: number = newWidth * newHeight;
-            
-            if ((rects.bottom > 0 || rects.top > 0) && (rects.top < contextSize.height) && (rects.left < contextSize.width)) {
-                percent = Math.round((newSize / orginalSize) * Math.pow(10, 2)) / Math.pow(10, 2);
+                   
+            if (
+                (rects.bottom > 0 || rects.top > 0) && 
+                (rects.top < contextSize.height) && 
+                (rects.left < contextSize.width)
+            ) {
+                percent = Math.round(((width * height) / size) * Math.pow(10, 2)) / Math.pow(10, 2);
             }
 
             return percent;
