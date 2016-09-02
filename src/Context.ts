@@ -11,36 +11,36 @@ namespace FrameWatcher {
         protected height: number = 0;
         protected iframe: boolean = false;
 
-        constructor(width:number=0,height:number=0) {
+        constructor(width: number= 0, height: number= 0) {
 
-            this.setSize(width,height);
+            this.setSize(width, height);
             this.setMetadata();
 
         }
 
-        setMetadata():void {
+        setMetadata(): void {
 
-            this.iframe = ((window.location != window.parent.location) ? true : false);
+            this.iframe = ((window.location !== window.parent.location) ? true : false);
             this.url = window.location.href;
             this.domain = window.location.hostname;
 
         }
-        getSize():Object {
+        getSize(): Object {
 
-            return {width: this.width, height: this.height};
-            
+            return { width: this.width, height: this.height };
+
         }
 
-        setSize(width: number, height: number):void {
+        setSize(width: number, height: number): void {
 
-            if(width > 0 && height > 0){
+            if (width > 0 && height > 0) {
 
                 this.width = width;
                 this.height = height;
 
-            }else{
+            }else {
                 this.width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
-                this.height = (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight);   
+                this.height = (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight);
             }
 
         }

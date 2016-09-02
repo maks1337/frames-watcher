@@ -2,7 +2,7 @@
 
 namespace FrameWatcher {
 
-    type viewedData = [string,boolean];
+    type viewedData = [string, boolean];
 
     export class Element {
 
@@ -13,12 +13,12 @@ namespace FrameWatcher {
         viewed: Array<viewedData> = [];
         private _timeline: Array<number> = [];
 
-        constructor(hookid: string, code: string){
+        constructor(hookid: string, code: string) {
 
             const hook = document.getElementById(hookid);
-    
-            if(!(hook instanceof Object)){
-                throw new Error('Invalid hook id');
+
+            if (!(hook instanceof Object)) {
+                throw new Error("Invalid hook id");
             }
 
             this.element = this.getHookParent(hook);
@@ -27,43 +27,34 @@ namespace FrameWatcher {
 
         }
 
-        getHookParent(hook: HTMLElement):HTMLElement{
-
+        getHookParent(hook: HTMLElement): HTMLElement {
             return hook.parentElement;
-
         }
 
-        getTimeline():Array<number>{
+        getTimeline(): Array<number> {
             return this._timeline;
         }
-        
-        addToTimeline(visibility:number){
-            if(visibility > 0){
+
+        addToTimeline(visibility: number) {
+            if (visibility > 0) {
                 this._timeline.push(visibility);
             }
         }
-        
-        getSize():Object {
 
-            return { width: this.element.offsetWidth,height: this.element.offsetHeight }
-
+        getSize(): Object {
+            return { width: this.element.offsetWidth, height: this.element.offsetHeight };
         }
 
-        getRects():Object{
-
-            if(!(this.element instanceof Object)){
-                throw new Error('FrameElement element in not a proper object');
+        getRects(): Object {
+            if (!(this.element instanceof Object)) {
+                throw new Error("FrameElement element in not a proper object");
             }
-
-            if('getClientRects' in this.element){
+            if ("getClientRects" in this.element) {
                 this.rects = this.element.getClientRects()[0];
                 return this.rects;
-            }else{
-                throw new Error('FrameElement can\'t get element rects');
+            }else {
+                throw new Error("FrameElement can\'t get element rects");
             }
-
         }
-
     }
-
 }

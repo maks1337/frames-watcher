@@ -8,11 +8,11 @@ namespace FrameWatcher {
         height: number;
     }
 
-    interface Rects { 
-        top: number, 
-        left: number,
-        bottom: number,
-        right: number
+    interface Rects {
+        top: number;
+        left: number;
+        bottom: number;
+        right: number;
     }
 
     export class Estimation {
@@ -20,26 +20,21 @@ namespace FrameWatcher {
         private context;
         private element;
 
-        constructor(element:Element,context:Context){
-
+        constructor(element: Element, context: Context) {
             this.element = element;
             this.context = context;
             this.runCalculation();
-
         }
 
-        runCalculation():number{
-
+        runCalculation(): number {
             return this.calculate(
                 this.element.getSize(),
                 this.element.getRects(),
                 this.context.getSize()
             );
-
         }
 
-        calculate(elementSize: Size,rects:Rects,contextSize: Size):number{
-
+        calculate(elementSize: Size, rects: Rects, contextSize: Size): number {
             let percent: number = 0;
             let height: number = elementSize.height;
             let width: number = elementSize.width;
@@ -65,17 +60,14 @@ namespace FrameWatcher {
                 width = width < 0 ? 0 : width;
                 if (width > elementSize.width) width = elementSize.width;
             }
-                   
             if (
-                (rects.bottom > 0 || rects.top > 0) && 
-                (rects.top < contextSize.height) && 
+                (rects.bottom > 0 || rects.top > 0) &&
+                (rects.top < contextSize.height) &&
                 (rects.left < contextSize.width)
             ) {
                 percent = Math.round(((width * height) / size) * Math.pow(10, 2)) / Math.pow(10, 2);
             }
-
             return percent;
-
         }
     }
 }
