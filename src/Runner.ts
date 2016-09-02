@@ -25,17 +25,8 @@ namespace FrameWatcher {
             viewId: string = undefined){
 
             this.context = new Context();
+            this.loadStrategies();
             
-            const basic = new StrategyCheck(new BasicStrategy()); 
-            const full = new StrategyCheck(new FullStrategy()); 
-            const long = new StrategyCheck(new LongStrategy()); 
-            const time = new StrategyCheck(new TimeStrategy()); 
-
-            this._strategies[basic.name] = basic;
-            this._strategies[full.name] = full;
-            this._strategies[long.name] = long;
-            this._strategies[time.name] = time;
-
             try {
 
                 const select = new SenderSelect(sender,senderUrl);
@@ -64,9 +55,27 @@ namespace FrameWatcher {
             return this._sender;
         }
 
+        get elements(): Array<Object> {
+            return this._elements;
+        }
+
         sendData(): void {
             this._sender.loadElements(this._elements);
             this._sender.send();
+        }
+
+        private loadStrategies(){
+
+            const basic = new StrategyCheck(new BasicStrategy()); 
+            const full = new StrategyCheck(new FullStrategy()); 
+            const long = new StrategyCheck(new LongStrategy()); 
+            const time = new StrategyCheck(new TimeStrategy()); 
+
+            this._strategies[basic.name] = basic;
+            this._strategies[full.name] = full;
+            this._strategies[long.name] = long;
+            this._strategies[time.name] = time;
+
         }
 
         protected run(): void {
@@ -146,10 +155,6 @@ namespace FrameWatcher {
             this._elements.push(new Element(hookid,code));
             this.checkElements();
         
-        }
-
-        get elements(): Array<Object> {
-            return this._elements;
         }
 
     }
