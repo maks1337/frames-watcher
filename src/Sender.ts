@@ -5,7 +5,7 @@
 
 namespace FrameWatcher {
 
-    type possibleSenders = HttpSender | SocketSender;
+    type possibleSenders = HttpSender | SocketSender | ConsoleSender;
 
     export class Data {
         private _data: Object;
@@ -103,6 +103,26 @@ namespace FrameWatcher {
         }
     }
 
+    export class ConsoleSender extends Sender {
+        private headerDrawn: boolean = false;
+        send(): boolean {
+
+            let data = this.prepareData();
+            const allowedData: Array<string> = ["placement", "strat-basic"];
+            data.forEach((element) => {
+                let dataString: Array<string> = [];
+                for (let key in element) {
+                    if (allowedData.indexOf(key) > -1) {
+                        dataString.push(`${element[key]}`);
+                    }
+                }
+                console.log(this.url, dataString.join(" "));
+            });
+
+            return true;
+        }
+    }
+
     export class SenderSelect {
         private sender: possibleSenders;
         constructor(type: string, url: string) {
@@ -111,6 +131,9 @@ namespace FrameWatcher {
             }
             if (type === "socket") {
                 this.sender = new SocketSender(url);
+            }
+            if (type === "console") {
+                this.sender = new ConsoleSender(url);
             }
             if (!this.sender.hasOwnProperty("url")) {
                 throw new Error(`invalid sender requested: ${type}`);
