@@ -136,7 +136,7 @@ var FrameWatcher;
 (function (FrameWatcher) {
     var BasicStrategy = (function () {
         function BasicStrategy() {
-            this.name = "basic";
+            this.NAME = "basic";
         }
         BasicStrategy.prototype.validate = function (timeline) {
             return (timeline.sort()[timeline.length - 1] >= 0.5);
@@ -146,7 +146,7 @@ var FrameWatcher;
     FrameWatcher.BasicStrategy = BasicStrategy;
     var FullStrategy = (function () {
         function FullStrategy() {
-            this.name = "full";
+            this.NAME = "full";
         }
         FullStrategy.prototype.validate = function (timeline) {
             return (timeline.sort()[timeline.length - 1] === 1);
@@ -156,7 +156,7 @@ var FrameWatcher;
     FrameWatcher.FullStrategy = FullStrategy;
     var LongStrategy = (function () {
         function LongStrategy() {
-            this.name = "long";
+            this.NAME = "long";
         }
         LongStrategy.prototype.validate = function (timeline) {
             var counts = timeline.reduce(function (acc, curr) {
@@ -170,7 +170,7 @@ var FrameWatcher;
     FrameWatcher.LongStrategy = LongStrategy;
     var TimeStrategy = (function () {
         function TimeStrategy() {
-            this.name = "time";
+            this.NAME = "time";
         }
         TimeStrategy.prototype.validate = function (timeline) {
             var counts = timeline.reduce(function (acc, curr) {
@@ -185,7 +185,7 @@ var FrameWatcher;
     var StrategyCheck = (function () {
         function StrategyCheck(strategy) {
             this.strategy = strategy;
-            this.name = strategy.name;
+            this.name = strategy.NAME;
         }
         StrategyCheck.prototype.run = function (timeline) {
             return this.strategy.validate(timeline);
@@ -206,7 +206,7 @@ var FrameWatcher;
             };
             if (cookie)
                 this._data["cookie"] = cookie;
-            element.viewed.forEach(function (a) { return _this._data[("strat-" + a[0])] = a[1]; });
+            element.viewed.forEach(function (a) { return _this._data["strat-" + a[0]] = a[1]; });
         }
         Object.defineProperty(Data.prototype, "data", {
             get: function () {
@@ -279,7 +279,7 @@ var FrameWatcher;
     var HttpSender = (function (_super) {
         __extends(HttpSender, _super);
         function HttpSender() {
-            _super.apply(this, arguments);
+            return _super.apply(this, arguments) || this;
         }
         HttpSender.prototype.send = function () {
             var data = this.prepareData();
@@ -291,7 +291,7 @@ var FrameWatcher;
     var SocketSender = (function (_super) {
         __extends(SocketSender, _super);
         function SocketSender() {
-            _super.apply(this, arguments);
+            return _super.apply(this, arguments) || this;
         }
         SocketSender.prototype.send = function () {
             var data = this.prepareData();
@@ -303,8 +303,9 @@ var FrameWatcher;
     var ConsoleSender = (function (_super) {
         __extends(ConsoleSender, _super);
         function ConsoleSender() {
-            _super.apply(this, arguments);
-            this.headerDrawn = false;
+            var _this = _super.apply(this, arguments) || this;
+            _this.headerDrawn = false;
+            return _this;
         }
         ConsoleSender.prototype.send = function () {
             var _this = this;

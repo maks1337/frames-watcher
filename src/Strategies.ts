@@ -1,26 +1,26 @@
 namespace FrameWatcher {
 
     interface Strategy {
-        name: string;
+        readonly NAME: string;
         validate(timeline: Array<number>): boolean;
     }
 
     export class BasicStrategy implements Strategy {
-        name: string = "basic";
+        NAME: string = "basic";
         public validate(timeline: Array<number>): boolean {
             return (timeline.sort()[timeline.length - 1] >= 0.5);
         }
     }
 
     export class FullStrategy implements Strategy {
-        name: string = "full";
+        NAME: string = "full";
         public validate(timeline: Array<number>): boolean {
             return (timeline.sort()[timeline.length - 1] === 1);
         }
     }
 
     export class LongStrategy implements Strategy {
-        name: string = "long";
+        NAME: string = "long";
         public validate(timeline: Array<number>): boolean {
             const counts = timeline.reduce(function (acc, curr) {
                 acc[curr] ? acc[curr]++ : acc[curr] = 1;
@@ -31,7 +31,7 @@ namespace FrameWatcher {
     }
 
     export class TimeStrategy implements Strategy {
-        name: string = "time";
+        NAME: string = "time";
         public validate(timeline: Array<number>): boolean {
             const counts = timeline.reduce(function (acc, curr) {
                 acc[curr] ? acc[curr]++ : acc[curr] = 1;
@@ -46,7 +46,7 @@ namespace FrameWatcher {
         private strategy: Strategy;
         constructor(strategy: Strategy) {
             this.strategy = strategy;
-            this.name = strategy.name;
+            this.name = strategy.NAME;
         }
         run(timeline: Array<number>): boolean {
             return this.strategy.validate(timeline);
