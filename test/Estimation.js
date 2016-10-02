@@ -18,7 +18,7 @@ describe('Estimation', ()=>{
         const context = new FrameWatcher.Context();
 
         const estimation = new FrameWatcher.Estimation(element,context);
-        const calculation = estimation.runCalculation();        
+        const calculation = estimation.calculate();        
 
         expect(calculation).to.equal(1);
 

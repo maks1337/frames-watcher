@@ -107,7 +107,7 @@ namespace FrameWatcher {
             for (let element of this._elements){
 
                 const estimation = new Estimation(element, this.context);
-                const percent = estimation.runCalculation();
+                const percent = estimation.calculate();
 
                 element.addToTimeline(percent);
                 element.viewed = [];

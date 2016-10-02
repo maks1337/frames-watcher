@@ -23,11 +23,7 @@ namespace FrameWatcher {
         constructor(element: Element, context: Context) {
             this.element = element;
             this.context = context;
-            this.runCalculation();
-        }
-
-        runCalculation(): number {
-            return this.calculate();
+            this.calculate();
         }
 
         lessThanZero(value): number {
@@ -35,9 +31,10 @@ namespace FrameWatcher {
         }
 
         inView(rects, contextSize): boolean {
-            return (rects.bottom > 0 || rects.top > 0)
-            && (rects.top < contextSize.height)
-            && (rects.left < contextSize.width);
+            const topBottomRectsGreaterThanZero = rects.bottom > 0 || rects.top > 0;
+            const topRectsInHeight = rects.top < contextSize.height;
+            const leftRectsInWidth = rects.left < contextSize.width;
+            return topBottomRectsGreaterThanZero && topRectsInHeight && leftRectsInWidth;
         }
 
         percent(width, height, size): number {
@@ -45,12 +42,9 @@ namespace FrameWatcher {
         }
 
         greaterThanElementSize(distance, value): number {
+            const distanceValue = this.element.getSize().$distance;
             value = this.lessThanZero(value);
-            if (value > this.element.getSize().$distance) {
-                return this.element.getSize().$distance;
-            }else {
-                return value;
-            }
+            return value > distanceValue ? distanceValue : value;
         }
 
         calculate(): number {
@@ -61,23 +55,16 @@ namespace FrameWatcher {
             let width: number = this.element.getSize().width;
             let size: number = this.element.getSize().height * this.element.getSize().width;
 
-            if (rects.top < 0) {
+            if (rects.top < 0)
                 height = this.greaterThanElementSize("height", height + rects.top);
-            }
-            if (context.width < rects.right) {
+            if (context.width < rects.right)
                 width = this.greaterThanElementSize("width", context.width - rects.left);
-            }
-            if (rects.bottom > context.height) {
+            if (rects.bottom > context.height)
                 height = this.greaterThanElementSize("height", rects.bottom - context.height);
-            }
-            if (rects.left < 0) {
+            if (rects.left < 0)
                 width = this.greaterThanElementSize("width", width + rects.left);
-            }
-            if (this.inView(rects, context)) {
-                return this.percent(width, height, size);
-            }else {
-                return 0;
-            }
+
+            return this.inView(rects, context) ? this.percent(width, height, size) : 0;
         }
     }
 }
