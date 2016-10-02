@@ -57,7 +57,6 @@ namespace FrameWatcher {
             const rects = this.element.getRects();
             const context = this.context.getSize();
 
-            let percent: number = 0;
             let height: number = this.element.getSize().height;
             let width: number = this.element.getSize().width;
             let size: number = this.element.getSize().height * this.element.getSize().width;
@@ -75,9 +74,10 @@ namespace FrameWatcher {
                 width = this.greaterThanElementSize("width", width + rects.left);
             }
             if (this.inView(rects, context)) {
-                percent = this.percent(width, height, size);
+                return this.percent(width, height, size);
+            }else {
+                return 0;
             }
-            return percent;
         }
     }
 }
