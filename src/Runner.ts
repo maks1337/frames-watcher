@@ -8,13 +8,14 @@ namespace FrameWatcher {
 
     export class Runner {
 
+        readonly tickRate: number = 1000;
+        readonly timeLimit: number = (1000 * 60) * 10;
+
         private context: Context;
         private _elements: Array<Element> = [];
         private _debug: boolean = false;
-        private _intervalTickRate: number = 1000;
         private _interval: any;
-        private _timeLimit: number = (1000 * 60) * 10;
-        private _timeElapsed: number = this._intervalTickRate;
+        private _timeElapsed: number = this.tickRate;
         private _strategies: Array<StrategyCheck> = [];
         private _sender: any;
 
@@ -74,7 +75,7 @@ namespace FrameWatcher {
         protected run(): void {
             try {
                 this.checkElements();
-                this._timeElapsed += this._intervalTickRate;
+                this._timeElapsed += this.tickRate;
                 this.expireRuntime();
                 this.sendData();
             } catch (error) {
@@ -88,11 +89,11 @@ namespace FrameWatcher {
             /** first "dry" run */
             this.run();
             window.addEventListener("resize", () => { this.context.setSize(0, 0); });
-            this._interval = setInterval(() => this.run(), this._intervalTickRate);
+            this._interval = setInterval(() => this.run(), this.tickRate);
         }
 
         expireRuntime(force: boolean = false): boolean {
-            if (this._timeElapsed >= this._timeLimit || force) {
+            if (this._timeElapsed >= this.timeLimit || force) {
                 clearInterval(this._interval);
                 return true;
             }
