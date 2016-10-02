@@ -81,10 +81,12 @@ namespace FrameWatcher {
             let currentData: Array<Object> = [];
 
             this.elements.forEach((element) => {
-
-                let dataClass = new Data(element, this._cookie, this._viewId);
+                let dataClass = new Data(
+                    element,
+                    this._cookie,
+                    this._viewId
+                );
                 currentData.push(dataClass.data);
-
             });
             return currentData;
         }
@@ -127,18 +129,17 @@ namespace FrameWatcher {
     export class SenderSelect {
         private sender: possibleSenders;
         constructor(type: string, url: string) {
-            if (type === "http") {
+            if (type === "http")
                 this.sender = new HttpSender(url);
-            }
-            if (type === "socket") {
+
+            if (type === "socket")
                 this.sender = new SocketSender(url);
-            }
-            if (type === "console") {
+
+            if (type === "console")
                 this.sender = new ConsoleSender(url);
-            }
-            if (!this.sender.hasOwnProperty("url")) {
+
+            if (!this.sender.hasOwnProperty("url"))
                 throw new Error(`invalid sender requested: ${type}`);
-            }
         }
         returnObject(): possibleSenders {
             return this.sender;
