@@ -27,45 +27,55 @@ namespace FrameWatcher {
         }
 
         runCalculation(): number {
-            return this.calculate(
-                this.element.getSize(),
-                this.element.getRects(),
-                this.context.getSize()
-            );
+            return this.calculate();
         }
 
-        calculate(elementSize: Size, rects: Rects, contextSize: Size): number {
+        lessThanZero(value): number {
+            return value < 0 ? 0 : value;
+        }
+
+        inView(rects, contextSize): boolean {
+            return (rects.bottom > 0 || rects.top > 0)
+            && (rects.top < contextSize.height)
+            && (rects.left < contextSize.width);
+        }
+
+        percent(width, height, size): number {
+            return Math.round(((width * height) / size) * Math.pow(10, 2)) / Math.pow(10, 2);
+        }
+
+        greaterThanElementSize(distance, value): number {
+            value = this.lessThanZero(value);
+            if (value > this.element.getSize().$distance) {
+                return this.element.getSize().$distance;
+            }else {
+                return value;
+            }
+        }
+
+        calculate(): number {
+            const rects = this.element.getRects();
+            const context = this.context.getSize();
+
             let percent: number = 0;
-            let height: number = elementSize.height;
-            let width: number = elementSize.width;
-            let size: number = elementSize.height * elementSize.width;
+            let height: number = this.element.getSize().height;
+            let width: number = this.element.getSize().width;
+            let size: number = this.element.getSize().height * this.element.getSize().width;
 
             if (rects.top < 0) {
-                height = elementSize.height + rects.top;
-                height = height < 0 ? 0 : height;
-                if (height > elementSize.height) height = elementSize.height;
+                height = this.greaterThanElementSize("height", height + rects.top);
             }
-            if (contextSize.width < rects.right) {
-                width = contextSize.width - rects.left;
-                width = width < 0 ? 0 : width;
-                if (width > elementSize.width) width = elementSize.width;
+            if (context.width < rects.right) {
+                width = this.greaterThanElementSize("width", context.width - rects.left);
             }
-            if (rects.bottom > contextSize.height) {
-                height = elementSize.height - (rects.bottom - contextSize.height);
-                height = height < 0 ? 0 : height;
-                if (height > elementSize.height) height = elementSize.height;
+            if (rects.bottom > context.height) {
+                height = this.greaterThanElementSize("height", rects.bottom - context.height);
             }
             if (rects.left < 0) {
-                width = elementSize.width + rects.left;
-                width = width < 0 ? 0 : width;
-                if (width > elementSize.width) width = elementSize.width;
+                width = this.greaterThanElementSize("width", width + rects.left);
             }
-            if (
-                (rects.bottom > 0 || rects.top > 0) &&
-                (rects.top < contextSize.height) &&
-                (rects.left < contextSize.width)
-            ) {
-                percent = Math.round(((width * height) / size) * Math.pow(10, 2)) / Math.pow(10, 2);
+            if (this.inView(rects, context)) {
+                percent = this.percent(width, height, size);
             }
             return percent;
         }
