@@ -31,14 +31,14 @@ for (var i = 0; i < 3; i++) {
     generateTestElements(
         width, 
         height,
-        ((i*height)+10),
-        ((i*width)+10),
+        ((i*height)+500),
+        ((i*width)+500),
         i
     );
 }
 
 if (typeof FrameWatcherRunner === 'undefined') {
-    var FrameWatcherRunner = new FrameWatcher.Runner('console', 'http://localhost', cookie, view);
+    var FrameWatcherRunner = new FrameWatcher.Runner('http', 'http://localhost', cookie);
 }
 
 document.querySelectorAll(".hook").forEach((a,b,c) => {
