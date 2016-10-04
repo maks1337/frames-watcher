@@ -32,7 +32,7 @@ namespace FrameWatcher {
                 const select = new SenderSelect(sender, senderUrl);
                 this._sender = select.returnObject();
                 this._sender.cookie = cookie;
-                this._sender.viewId = viewId;
+                this._sender.viewId = (viewId) ? viewId : new UUID().get();
                 this.bindRuntime();
             } catch (error) {
                 console.log(`Runner not started because: ${error}`);

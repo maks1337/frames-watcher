@@ -14,7 +14,7 @@ namespace FrameWatcher {
     * @link http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
     **/
     export class UUID {
-        constructor() {
+        get() {
             let self = {};
             let lut = []; for (let i = 0; i < 256; i++) { lut[i] = (i < 16 ? "0" : "") + (i).toString(16); }
             const d0 = Math.random() * 0xffffffff | 0;
@@ -34,7 +34,7 @@ namespace FrameWatcher {
             this._data = {
                 code: element.code,
                 placement: element.id,
-                view: (viewId) ? viewId : new UUID()
+                view: viewId
             };
             if (cookie) this._data["cookie"] = cookie;
             element.viewed.forEach((a) => this._data[`strat-${a[0]}`] = a[1]);
@@ -93,8 +93,41 @@ namespace FrameWatcher {
     }
 
     export class HttpSender extends Sender {
-        send(): boolean {
+        private lastUrl: string;
+        generateUrlForData(element: Object, prefix: number): string {
+            let subQuery: Array<String> = [];
+            for (let key in element) {
+                subQuery.push(
+                    `${key}[${prefix}]=${element[key]}`
+                );
+            }
+            return subQuery.join("&");
+        }
+        prepareUrl(): string {
+            let query: Array<String> = [];
             let data = this.prepareData();
+            let prefix: number = 0;
+            for (let element of data) {
+                query.push(
+                    this.generateUrlForData(element, prefix)
+                );
+                prefix++;
+            }
+            return `?=${query.join("&")}`;
+        }
+        checkLastUrl(url) {
+            return url !== this.lastUrl;
+        }
+        setLastUrl(url) {
+            this.lastUrl = url;
+        }
+        send(): boolean {
+            let url = this.prepareUrl();
+            if (this.checkLastUrl(url)) {
+                this.setLastUrl(url);
+                let sendDataImage = document.createElement("img");
+                sendDataImage.src = `${url}&stamp=${new Date().getTime()}`;
+            }
             return true;
         }
     }
@@ -107,9 +140,7 @@ namespace FrameWatcher {
     }
 
     export class ConsoleSender extends Sender {
-        private headerDrawn: boolean = false;
         send(): boolean {
-
             let data = this.prepareData();
             const allowedData: Array<string> = ["placement", "strat-basic"];
             data.forEach((element) => {
@@ -121,7 +152,6 @@ namespace FrameWatcher {
                 }
                 console.log(this.url, dataString.join(" "));
             });
-
             return true;
         }
     }
