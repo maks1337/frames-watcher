@@ -11,7 +11,7 @@ To build JavaScript files from TypeScript source use `npm run build`
 
 ## Tests
 
-All tests can be found in `tests` folder
+All tests can be found in `test` folder
 
 ## License
 
