@@ -87,46 +87,40 @@ var FrameWatcher;
         function Estimation(element, context) {
             this.element = element;
             this.context = context;
-            this.runCalculation();
+            this.calculate();
         }
-        Estimation.prototype.runCalculation = function () {
-            return this.calculate(this.element.getSize(), this.element.getRects(), this.context.getSize());
+        Estimation.prototype.lessThanZero = function (value) {
+            return value < 0 ? 0 : value;
         };
-        Estimation.prototype.calculate = function (elementSize, rects, contextSize) {
-            var percent = 0;
-            var height = elementSize.height;
-            var width = elementSize.width;
-            var size = elementSize.height * elementSize.width;
-            if (rects.top < 0) {
-                height = elementSize.height + rects.top;
-                height = height < 0 ? 0 : height;
-                if (height > elementSize.height)
-                    height = elementSize.height;
-            }
-            if (contextSize.width < rects.right) {
-                width = contextSize.width - rects.left;
-                width = width < 0 ? 0 : width;
-                if (width > elementSize.width)
-                    width = elementSize.width;
-            }
-            if (rects.bottom > contextSize.height) {
-                height = elementSize.height - (rects.bottom - contextSize.height);
-                height = height < 0 ? 0 : height;
-                if (height > elementSize.height)
-                    height = elementSize.height;
-            }
-            if (rects.left < 0) {
-                width = elementSize.width + rects.left;
-                width = width < 0 ? 0 : width;
-                if (width > elementSize.width)
-                    width = elementSize.width;
-            }
-            if ((rects.bottom > 0 || rects.top > 0) &&
-                (rects.top < contextSize.height) &&
-                (rects.left < contextSize.width)) {
-                percent = Math.round(((width * height) / size) * Math.pow(10, 2)) / Math.pow(10, 2);
-            }
-            return percent;
+        Estimation.prototype.inView = function (rects, contextSize) {
+            var topBottomRectsGreaterThanZero = rects.bottom > 0 || rects.top > 0;
+            var topRectsInHeight = rects.top < contextSize.height;
+            var leftRectsInWidth = rects.left < contextSize.width;
+            return topBottomRectsGreaterThanZero && topRectsInHeight && leftRectsInWidth;
+        };
+        Estimation.prototype.percent = function (width, height, size) {
+            return Math.round(((width * height) / size) * Math.pow(10, 2)) / Math.pow(10, 2);
+        };
+        Estimation.prototype.greaterThanElementSize = function (distance, value) {
+            var distanceValue = this.element.getSize().$distance;
+            value = this.lessThanZero(value);
+            return value > distanceValue ? distanceValue : value;
+        };
+        Estimation.prototype.calculate = function () {
+            var rects = this.element.getRects();
+            var context = this.context.getSize();
+            var height = this.element.getSize().height;
+            var width = this.element.getSize().width;
+            var size = this.element.getSize().height * this.element.getSize().width;
+            if (rects.top < 0)
+                height = this.greaterThanElementSize("height", height + rects.top);
+            if (context.width < rects.right)
+                width = this.greaterThanElementSize("width", context.width - rects.left);
+            if (rects.bottom > context.height)
+                height = this.greaterThanElementSize("height", rects.bottom - context.height);
+            if (rects.left < 0)
+                width = this.greaterThanElementSize("width", width + rects.left);
+            return this.inView(rects, context) ? this.percent(width, height, size) : 0;
         };
         return Estimation;
     }());
@@ -196,26 +190,10 @@ var FrameWatcher;
 })(FrameWatcher || (FrameWatcher = {}));
 var FrameWatcher;
 (function (FrameWatcher) {
-    var Data = (function () {
-        function Data(element, cookie, viewId) {
-            var _this = this;
-            this._data = {
-                code: element.code,
-                placement: element.id,
-                view: (viewId) ? viewId : this.uuid()
-            };
-            if (cookie)
-                this._data["cookie"] = cookie;
-            element.viewed.forEach(function (a) { return _this._data["strat-" + a[0]] = a[1]; });
+    var UUID = (function () {
+        function UUID() {
         }
-        Object.defineProperty(Data.prototype, "data", {
-            get: function () {
-                return this._data;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Data.prototype.uuid = function () {
+        UUID.prototype.get = function () {
             var self = {};
             var lut = [];
             for (var i = 0; i < 256; i++) {
@@ -230,6 +208,28 @@ var FrameWatcher;
                 lut[d2 & 0x3f | 0x80] + lut[d2 >> 8 & 0xff] + "-" + lut[d2 >> 16 & 0xff] + lut[d2 >> 24 & 0xff] +
                 lut[d3 & 0xff] + lut[d3 >> 8 & 0xff] + lut[d3 >> 16 & 0xff] + lut[d3 >> 24 & 0xff];
         };
+        return UUID;
+    }());
+    FrameWatcher.UUID = UUID;
+    var Data = (function () {
+        function Data(element, cookie, viewId) {
+            var _this = this;
+            this._data = {
+                code: element.code,
+                placement: element.id,
+                view: viewId
+            };
+            if (cookie)
+                this._data["cookie"] = cookie;
+            element.viewed.forEach(function (a) { return _this._data["strat-" + a[0]] = a[1]; });
+        }
+        Object.defineProperty(Data.prototype, "data", {
+            get: function () {
+                return this._data;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return Data;
     }());
     FrameWatcher.Data = Data;
@@ -281,8 +281,37 @@ var FrameWatcher;
         function HttpSender() {
             return _super.apply(this, arguments) || this;
         }
-        HttpSender.prototype.send = function () {
+        HttpSender.prototype.generateUrlForData = function (element, prefix) {
+            var subQuery = [];
+            for (var key in element) {
+                subQuery.push(key + "[" + prefix + "]=" + element[key]);
+            }
+            return subQuery.join("&");
+        };
+        HttpSender.prototype.prepareUrl = function () {
+            var query = [];
             var data = this.prepareData();
+            var prefix = 0;
+            for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
+                var element = data_1[_i];
+                query.push(this.generateUrlForData(element, prefix));
+                prefix++;
+            }
+            return "?=" + query.join("&");
+        };
+        HttpSender.prototype.checkLastUrl = function (url) {
+            return url !== this.lastUrl;
+        };
+        HttpSender.prototype.setLastUrl = function (url) {
+            this.lastUrl = url;
+        };
+        HttpSender.prototype.send = function () {
+            var url = this.prepareUrl();
+            if (this.checkLastUrl(url)) {
+                this.setLastUrl(url);
+                var sendDataImage = document.createElement("img");
+                sendDataImage.src = url + "&stamp=" + new Date().getTime();
+            }
             return true;
         };
         return HttpSender;
@@ -303,9 +332,7 @@ var FrameWatcher;
     var ConsoleSender = (function (_super) {
         __extends(ConsoleSender, _super);
         function ConsoleSender() {
-            var _this = _super.apply(this, arguments) || this;
-            _this.headerDrawn = false;
-            return _this;
+            return _super.apply(this, arguments) || this;
         }
         ConsoleSender.prototype.send = function () {
             var _this = this;
@@ -327,18 +354,14 @@ var FrameWatcher;
     FrameWatcher.ConsoleSender = ConsoleSender;
     var SenderSelect = (function () {
         function SenderSelect(type, url) {
-            if (type === "http") {
+            if (type === "http")
                 this.sender = new HttpSender(url);
-            }
-            if (type === "socket") {
+            if (type === "socket")
                 this.sender = new SocketSender(url);
-            }
-            if (type === "console") {
+            if (type === "console")
                 this.sender = new ConsoleSender(url);
-            }
-            if (!this.sender.hasOwnProperty("url")) {
+            if (!this.sender.hasOwnProperty("url"))
                 throw new Error("invalid sender requested: " + type);
-            }
         }
         SenderSelect.prototype.returnObject = function () {
             return this.sender;
@@ -354,11 +377,11 @@ var FrameWatcher;
             if (sender === void 0) { sender = "http"; }
             if (cookie === void 0) { cookie = undefined; }
             if (viewId === void 0) { viewId = undefined; }
+            this.tickRate = 1000;
+            this.timeLimit = (1000 * 60) * 10;
             this._elements = [];
             this._debug = false;
-            this._intervalTickRate = 1000;
-            this._timeLimit = (1000 * 60) * 10;
-            this._timeElapsed = this._intervalTickRate;
+            this._timeElapsed = this.tickRate;
             this._strategies = [];
             this.context = new FrameWatcher.Context();
             this.loadStrategies();
@@ -366,7 +389,7 @@ var FrameWatcher;
                 var select = new FrameWatcher.SenderSelect(sender, senderUrl);
                 this._sender = select.returnObject();
                 this._sender.cookie = cookie;
-                this._sender.viewId = viewId;
+                this._sender.viewId = (viewId) ? viewId : new FrameWatcher.UUID().get();
                 this.bindRuntime();
             }
             catch (error) {
@@ -414,7 +437,7 @@ var FrameWatcher;
         Runner.prototype.run = function () {
             try {
                 this.checkElements();
-                this._timeElapsed += this._intervalTickRate;
+                this._timeElapsed += this.tickRate;
                 this.expireRuntime();
                 this.sendData();
             }
@@ -427,11 +450,11 @@ var FrameWatcher;
             var _this = this;
             this.run();
             window.addEventListener("resize", function () { _this.context.setSize(0, 0); });
-            this._interval = setInterval(function () { return _this.run(); }, this._intervalTickRate);
+            this._interval = setInterval(function () { return _this.run(); }, this.tickRate);
         };
         Runner.prototype.expireRuntime = function (force) {
             if (force === void 0) { force = false; }
-            if (this._timeElapsed >= this._timeLimit || force) {
+            if (this._timeElapsed >= this.timeLimit || force) {
                 clearInterval(this._interval);
                 return true;
             }
@@ -444,7 +467,7 @@ var FrameWatcher;
             for (var _i = 0, _a = this._elements; _i < _a.length; _i++) {
                 var element = _a[_i];
                 var estimation = new FrameWatcher.Estimation(element, this.context);
-                var percent = estimation.runCalculation();
+                var percent = estimation.calculate();
                 element.addToTimeline(percent);
                 element.viewed = [];
                 for (var name_1 in this._strategies) {
